@@ -2,6 +2,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 	return {
 		store: {
 			message: null,
+			user:{},
 			demo: [
 				{
 					title: "FIRST",
@@ -20,7 +21,59 @@ const getState = ({ getStore, getActions, setStore }) => {
 			exampleFunction: () => {
 				getActions().changeColor(0, "green");
 			},
+			login:(email,password) => {
+				const user = {
+					email:email,
+					password:password
+				}
+				fetch(process.env.BACKEND_URL + "/api/login",{
+					method:"POST",
+					headers:{"Content-Type": "application/json"},
+					body:JSON.stringify(user)
+		
+				  })
+				  .then((response) => response.json())
+				  .then((result)=> getActions().protected(result.access_token))
+				  .catch(error => console.log('error', error));
+			   },
+			   
 
+		 protected:(token) => {
+
+			fetch(process.env.BACKEND_URL + "/api/protected",{
+			method: "GET",
+			headers: {
+				Authorization:`Bearer ${token}`
+			}
+
+			})
+			.then((response) => response.json())
+		    .then(result => setStore({user:result}))
+		    .catch(error => ('error', error));
+
+			
+		},
+		logout:() =>{
+		setStore({user:{}})	
+		},
+				
+         signup:(email,password) =>{
+			const user = {
+				email:email,
+				password:password
+			}
+           fetch(process.env.BACKEND_URL + "/api/signup",{
+			method:"POST",
+			headers:{"Content-Type": "application/json"},
+			body:JSON.stringify(user)
+			
+		})
+		.then((response) => response.json())
+		.then((result) => setStore({user:result}))
+		.catch(error => console.log('error', error));
+			
+		 },
+		
 			getMessage: async () => {
 				try{
 					// fetching data from the backend
